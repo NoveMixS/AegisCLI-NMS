@@ -20,8 +20,8 @@
 ## ⚙️ Installation & Usage (Coming Soon)
 
 ```bash
-# Clone the repository
-git clone [https://github.com/YourUsername/AegisCLI.git](https://github.com/YourUsername/AegisCLI.git)
+# Clone the repository than
+
 
 # Navigate to the directory
 cd AegisCLI
