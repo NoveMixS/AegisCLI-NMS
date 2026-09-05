@@ -11,6 +11,6 @@ polar: # Replace with a single Polar username
 buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
 thanks_dev: # Replace with a single thanks.dev username
 custom: [
-  'https://app.binance.com/qr/dplk-pay?uin=1118605736',
+  'https://app.binance.com/uni-qr/request-to-pay?billOrderId=452647215534342144&billType=split_bill',
   'https://bscscan.com/address/0x68b39a86fa87e8aa43ba75b0a14a14e5d182dbb5'
 ]
