@@ -76,7 +76,7 @@ aegis identify hash 5f4dcc3b5aa765d61d8327deb882cf99
 
 ```bash
 # Clone the repository
-git clone https://github.com/siyam201/AegisCLI-NMS.git
+git clone https://github.com/novemixs/AegisCLI-NMS.git
 
 # Navigate to the directory
 cd AegisCLI-NMS
