@@ -9,7 +9,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/siyam201/AegisCLI-NMS?style=social)](https://github.com/siyam201/AegisCLI-NMS)
 [![Kickoff](https://img.shields.io/badge/Kickoff-February%202027-red.svg)]()
 
-**1600+ Security Tools. One Command. Powered by AI.**
+**630+ Security Tools. One Command. Powered by AI.**
 
 [📖 Docs](#-planned-modules) · [🚀 Install](#️-installation) · [🤝 Contribute](#-join-the-team) · [💰 Sponsor](#-sponsor-this-project)
 
@@ -42,7 +42,7 @@ aegis identify hash 5f4dcc3b5aa765d61d8327deb882cf99
 | Feature | Description |
 |---------|-------------|
 | 🤖 **AI Command Engine** | Natural language → auto tool selection |
-| 🔧 **1600+ Tools** | All major security tools integrated |
+| 🔧 **630+ Tools** | All major security tools integrated |
 | 🛡️ **Antivirus Engine** | Built-in threat detection & malware analysis |
 | 🪶 **Lightweight** | Minimal system overhead, fast execution |
 | 🧩 **Modular** | Add/remove modules as needed |
