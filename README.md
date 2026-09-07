@@ -78,9 +78,10 @@ hashid "5f4dcc3b5aa765d61d8327deb882cf99"
 **After — one unified interface:**
 
 ```bash
-aegis scan target.com
-aegis find subdomains target.com
-aegis identify hash 5f4dcc3b5aa765d61d8327deb882cf99
+tools name/number(1,2,3)
+scan target.com
+find subdomains target.com
+identify hash 5f4dcc3b5aa765d61d8327deb882cf99
 ```
 
 The long-term goal is to combine native modules, external security-tool integrations, and an AI-assisted command engine into one modular platform.
