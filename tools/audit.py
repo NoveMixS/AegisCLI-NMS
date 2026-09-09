@@ -1,6 +1,10 @@
 """
 tools/audit.py — Local system security audit (Linux-focused), interactive.
 """
+
+'''this is not work propurly now i wall working this'''
+
+
 import os
 import platform
 import stat
@@ -59,3 +63,4 @@ def run():
     console.print("\n[bold]== Listening services (ss -tulnp) ==[/bold]")
     for line in _listening_ports():
         console.print(f"  {line}")
+
