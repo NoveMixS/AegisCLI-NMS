@@ -1,21 +1,15 @@
 """
-audit module — local system security audit (Linux-focused).
-
-Usage:
-    aegis audit [-p PATHS...]
-
-Examples:
-    aegis audit
-    aegis audit -p /tmp /var/tmp
+tools/audit.py — Local system security audit (Linux-focused), interactive.
 """
-import argparse
 import os
 import platform
 import stat
 import subprocess
+from rich.console import Console
 
-NAME = "audit"
-DESCRIPTION = "Local system security audit: weak permissions & listening services."
+console = Console()
+
+description = "Local system security audit: weak permissions & listening services"
 
 
 def _world_writable(paths: list[str]) -> list[str]:
@@ -43,27 +37,25 @@ def _listening_ports() -> list[str]:
         return ["ss command unavailable."]
 
 
-def run(argv: list[str]) -> None:
-    parser = argparse.ArgumentParser(prog="aegis audit", add_help=True)
-    parser.add_argument("-p", "--paths", nargs="+", default=["/tmp", "/var/tmp"],
-                         help="Paths to scan for world-writable files")
-    args = parser.parse_args(argv)
-
+def run():
     system = platform.system()
-    print(f"[*] Auditing {system} {platform.release()}\n")
+    console.print(f"[*] Auditing [bold]{system} {platform.release()}[/bold]\n")
 
     if system != "Linux":
-        print("[!] Full audit currently supports Linux only. Basic info only shown.")
+        console.print("[yellow]Full audit currently supports Linux only.[/yellow]")
         return
 
-    print("== World-writable files ==")
-    ww = _world_writable(args.paths)
+    paths_str = console.input("[cyan]Paths to scan, space-separated (default /tmp /var/tmp): [/cyan]").strip()
+    paths = paths_str.split() if paths_str else ["/tmp", "/var/tmp"]
+
+    console.print("\n[bold]== World-writable files ==[/bold]")
+    ww = _world_writable(paths)
     if ww:
         for f in ww:
-            print(f"  [!] {f}")
+            console.print(f"[red]  [!] {f}[/red]")
     else:
-        print("  None found.")
+        console.print("  None found.")
 
-    print("\n== Listening services (ss -tulnp) ==")
+    console.print("\n[bold]== Listening services (ss -tulnp) ==[/bold]")
     for line in _listening_ports():
-        print(f"  {line}")
+        console.print(f"  {line}")
