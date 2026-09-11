@@ -1,0 +1,3 @@
+rich
+cryptography
+prompt-toolkit
