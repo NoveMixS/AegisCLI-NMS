@@ -45,7 +45,7 @@
 
 *«One CLI. Modular Security. Built in the open.»*
 
-![Release](https://img.shields.io/badge/Release-v0.1%20%E2%80%94%20Dec%209%2C%202026-2ea44f?style=for-the-badge)
+![Release](https://img.shields.io/badge/Release-v0.1%20%E2%80%94%20Sep%2012%2C%202026-2ea44f?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-2ea44f?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=for-the-badge)
@@ -57,7 +57,7 @@
 
 ---
 
-> **⚡ Fast Release — December 9, 2026**
+> **⚡ Fast Release — September 12, 2026**
 > AegisCLI **v0.1** ships with four fully working native modules and a Rich-powered interactive Hub. The AI command engine and 630+ external tool integrations remain on the roadmap.
 
 <br>
@@ -234,18 +234,26 @@ python tools/nmap.py 127.0.0.1 -p 22,80,443,8080 --no-banner
 
 | Phase | Timeline | Target | Status |
 |---|---|---|---|
-| **Phase 0 — Foundation** | Sep → Nov 2026 | Setup | ✅ Done |
-| **Phase 1 — Core Modules** | **Dec 9, 2026** | **v0.1** | ✅ **Released** |
-| **Phase 2 — AI Engine** | Q1 → Q2 2027 | v0.5 Beta | 🟡 In Development |
-| **Phase 3 — Expanded Platform** | Q3 2027 | v1.0 | 🔵 Planned |
-| **Phase 4 — Community** | 2028+ | — | 🔵 Planned |
+| **Phase 0 — Foundation** | Sep 1 → Sep 11, 2026 | Setup | ✅ Done |
+| **Phase 1 — Core Modules** | **Sep 12, 2026** | **v0.1** | ✅ **Released** |
+| **Phase 2 — AI Engine** | Oct 2026 → Jan 2027 | v0.5 Beta | 🟡 In Development |
+| **Phase 3 — Expanded Platform** | Feb → Jun 2027 | v1.0 | 🔵 Planned |
+| **Phase 4 — Community** | Q3 2027+ | — | 🔵 Planned |
 
 <details>
 <summary><b>📋 Detailed roadmap (click to expand)</b></summary>
 
 <br>
 
-**Phase 1 — Core Modules — v0.1** ✅ *(Released Dec 9, 2026)*
+**Phase 0 — Foundation** *(Sep 1 → Sep 11, 2026)* ✅
+- [x] Project planning
+- [x] Repository setup
+- [x] Architecture planning
+- [x] Development environment
+- [x] Core CLI skeleton
+- [x] Initial documentation
+
+**Phase 1 — Core Modules — v0.1** ✅ *(Released Sep 12, 2026)*
 - [x] Interactive Hub CLI (Rich)
 - [x] Port Scanner module
 - [x] Subdomain Enumerator module
@@ -256,7 +264,7 @@ python tools/nmap.py 127.0.0.1 -p 22,80,443,8080 --no-banner
 - [x] `--json` output for scripting
 - [x] Command history · favorites · search · reload
 
-**Phase 2 — AI & Tool Integration** *(Q1 → Q2 2027 · v0.5 Beta)*
+**Phase 2 — AI & Tool Integration** *(Oct 2026 → Jan 2027 · v0.5 Beta)*
 - [ ] AI Command Engine (LangChain + Ollama)
 - [ ] Natural-language → tool selection
 - [ ] Tool-selection layer using `SCHEMA`
@@ -264,14 +272,14 @@ python tools/nmap.py 127.0.0.1 -p 22,80,443,8080 --no-banner
 - [ ] Configuration system expansion
 - [ ] Structured logging
 
-**Phase 3 — Expanded Platform** *(Q3 2027 · v1.0)*
+**Phase 3 — Expanded Platform** *(Feb → Jun 2027 · v1.0)*
 - [ ] 400+ tool integrations
 - [ ] Threat detection module
 - [ ] Malware analysis capabilities
 - [ ] Plugin ecosystem (third-party modules)
 - [ ] Stable CLI API
 
-**Phase 4 — Community & Ecosystem** *(2028+)*
+**Phase 4 — Community & Ecosystem** *(Q3 2027+)*
 - [ ] 630+ tools/modules
 - [ ] Community plugin registry
 - [ ] Bug-bounty workflow support
@@ -413,7 +421,7 @@ Released under the **MIT License** — Copyright © 2026 Md Siyam Mahmud. See [L
 
 *«One CLI. Modular Security. Built in the open.»*
 
-**Released December 9, 2026**
+**Released September 12, 2026**
 
 ⭐ **Star the repository if you want to follow development.**
 
