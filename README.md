@@ -43,29 +43,76 @@
 
 ### All-in-One Modular Security CLI Toolkit
 
-*«One CLI. Modular Security. AI-assisted automation — coming soon.»*
+*«One CLI. Modular Security. Built in the open.»*
 
+![Release](https://img.shields.io/badge/Release-v0.1%20%E2%80%94%20Dec%209%2C%202026-2ea44f?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-2ea44f?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=for-the-badge)
-![Goal](https://img.shields.io/badge/Roadmap-630%2B%20Tools-1462c9?style=for-the-badge)
+![Roadmap](https://img.shields.io/badge/Roadmap-630%2B%20Tools-1462c9?style=for-the-badge)
+
+**🎉 v0.1 is live — 4 working modules + interactive Hub CLI.**
 
 </div>
 
 ---
 
-AegisCLI-NMS is an open-source, modular cybersecurity command-line toolkit built with Python.
+> **⚡ Fast Release — December 9, 2026**
+> AegisCLI **v0.1** ships with four fully working native modules and a Rich-powered interactive Hub. The AI command engine and 630+ external tool integrations remain on the roadmap.
 
-The goal is simple: provide a **unified CLI** for common security workflows instead of requiring users to manually switch between multiple security utilities.
+<br>
 
-> ⚠️ **AegisCLI is currently in early development.**
-> Several features described below are planned and are not yet available.
+## 🚀 What's Available Now (v0.1)
+
+<table>
+<tr><td width="40">✅</td><td><b>Interactive Hub CLI</b><br>Rich terminal UI · numbered tool menu · search · favorites · command history · JSON output for scripting.</td></tr>
+<tr><td>✅</td><td><b>Port Scanner</b> <code>nmap</code><br>Multi-threaded TCP scan · IPv4 &amp; IPv6 · service detection · banner grabbing.</td></tr>
+<tr><td>✅</td><td><b>Subdomain Enumerator</b> <code>subfinder</code><br>DNS brute-force · 250+ built-in wordlist · custom wordlists · per-lookup hard timeout.</td></tr>
+<tr><td>✅</td><td><b>Hash Analyzer</b> <code>hash</code><br>Identify hash format · compute MD5/SHA family · AES encrypt/decrypt (Fernet + PBKDF2).</td></tr>
+<tr><td>✅</td><td><b>System Security Auditor</b> <code>audit</code><br>World-writable file scan · listening-services enumeration · cross-platform (Linux / Windows).</td></tr>
+</table>
+
+<br>
+
+### 🎬 Live Demo
+
+```text
+⚔️  Aegis-CLI — AI-Powered Modular Security CLI Toolkit
+    Version: 2.1  |  Tools Loaded: 4
+
+  SL   Tool Name     Description                                Version   Category
+ ───  ────────────  ─────────────────────────────────────────  ────────  ─────────
+  1   audit         Local system security audit                1.1       System
+  2   hash          Identify · compute · encrypt/decrypt       1.2       Cryptography
+  3   nmap          Fast multi-threaded TCP port scanner       2.0       Recon
+  4   subfinder     DNS brute-force subdomain discovery        2.0       Recon
+
+aegis-hub> 3
+▶ Loading tool: nmap (v2.0)
+
+Target (host or IP): scanme.nmap.org
+Ports (default 1-1000):
+Threads (default 200):
+Timeout per port sec (default 1.0):
+Grab service banners? (y/N): y
+
+[*] Scanning scanme.nmap.org (45.33.32.156, IPv4) — 1000 ports, 200 threads
+
+      Open ports on scanme.nmap.org (45.33.32.156)
+ ┏━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ ┃ Port ┃ Service ┃ Banner                      ┃
+ ┡━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+ │   22 │ ssh     │ SSH-2.0-OpenSSH_6.6.1p1     │
+ │   80 │ http    │ HTTP/1.1 200 OK             │
+ └──────┴─────────┴─────────────────────────────┘
+3 open port(s) found in 5.2s.
+```
 
 <br>
 
 ## 🔍 What is AegisCLI?
 
-Modern security workflows often require many different tools for reconnaissance, analysis, auditing, and testing.
+Modern security workflows often require many different tools. Instead of juggling them, AegisCLI gives you **one unified CLI** with a numbered menu, consistent output, and a modular plugin system.
 
 **Before — juggling multiple tools:**
 
@@ -75,269 +122,194 @@ subfinder -d target.com
 hashid "5f4dcc3b5aa765d61d8327deb882cf99"
 ```
 
-**After — one unified interface:**
+**After — one hub:**
 
 ```bash
-tools name/number(1,2,3)
-scan target.com
-find subdomains target.com
-identify hash 5f4dcc3b5aa765d61d8327deb882cf99
+python aegis-hub.py
+# → pick a tool by number
+# → answer 2–3 prompts
+# → get structured results
 ```
-
-The long-term goal is to combine native modules, external security-tool integrations, and an AI-assisted command engine into one modular platform.
 
 <br>
 
-## ✨ Features
-
-<table>
-<tr><td width="60">🧩</td><td><b>Modular Architecture</b><br>Independent modules — develop, maintain, enable, or remove freely.</td></tr>
-<tr><td>🌐</td><td><b>Network Reconnaissance</b><br>Port scanning, service detection, host discovery, structured results.</td></tr>
-<tr><td>🔎</td><td><b>Subdomain Enumeration</b><br>Unified interface across multiple enumeration engines.</td></tr>
-<tr><td>#️⃣</td><td><b>Hash Analyzer</b><br>Identify common hash formats with expanding format support.</td></tr>
-<tr><td>🔒</td><td><b>System Security Auditor</b><br>Detects misconfigurations, weak settings, exposed services.</td></tr>
-<tr><td>🛡️</td><td><b>Threat Detection & Malware Analysis</b><br>Suspicious file analysis, indicators, threat scoring, reports.</td></tr>
-<tr><td>🤖</td><td><b>AI Command Engine</b><br>Natural-language task execution via local LLMs (LangChain + Ollama).</td></tr>
-</table>
-
-<br>
-
-### 🌐 Network Reconnaissance
-
-Planned functionality: port scanning · service detection · host discovery · basic network enumeration · structured scan results.
-
-```bash
-aegis scan target.com
-```
-
----
-
-### 🔎 Subdomain Enumeration
-
-AegisCLI will provide a unified interface for discovering subdomains, with future versions integrating multiple enumeration engines.
-
-```bash
-aegis find subdomains target.com
-```
-
----
-
-### #️⃣ Hash Analyzer
-
-The Hash Analyzer is planned to identify common hash formats and provide analysis information. Supported formats will expand over time.
-
-```bash
-aegis identify hash 5f4dcc3b5aa765d61d8327deb882cf99
-```
-
----
-
-### 🔒 System Security Auditor
-
-Planned checks include:
-
-- File permissions
-- Misconfigurations
-- Weak security settings
-- Exposed services
-- Basic system hardening issues
-
----
-
-### 🤖 AI Command Engine
-
-> **Planned Feature**
-
-AegisCLI is planned to include an AI-assisted command engine using local AI models.
-
-**Proposed stack:** Python · LangChain · Ollama · Local LLMs
-
-```
-User:
-Find open web services on target.com
-
-AegisCLI:
-→ Interprets the request
-→ Selects the appropriate module/tool
-→ Executes the permitted operation
-→ Presents structured results
-```
-
-AI execution will be designed with safety controls and explicit command boundaries rather than allowing unrestricted arbitrary command execution.
-
----
-
-### 🛠️ Tool Integration
-
-A major long-term goal of AegisCLI is integrating existing security utilities through a common interface — potentially including **Nmap, Subfinder, Wireshark, Burp Suite, Metasploit**, hash analysis utilities, and additional open-source tools.
-
-> **Long-Term Goal:** «630+ security tools/modules» — this is a roadmap target, not the current number of integrated tools.
-
-```
-Native Modules
-      +
-External Tool Integrations
-      +
-AI Command Engine
-      ↓
-Unified Security CLI
-```
-
----
-
-### 🛡️ Threat Detection & Malware Analysis
-
-> **Planned Feature**
-
-Potential capabilities: suspicious file analysis · basic malware indicators · hash analysis · file metadata inspection · threat scoring · security reports.
-
-*This module is planned and should not be considered a full antivirus replacement.*
-
-<br>
-
-## 🗺️ Development Roadmap
-
-| Phase | Timeline | Target | Focus |
-|---|---|---|---|
-| **Phase 0 — Foundation** | Sep 2026 → Feb 2027 | — | Planning, repo setup, architecture ✅ |
-| **Phase 1 — Core Modules** | Feb → May 2027 | v0.1 | Recon, Enumeration, Hash Analyzer, Auditor |
-| **Phase 2 — AI & Tool Integration** | May → Aug 2027 | v0.5 Beta | AI Engine, Ollama/LangChain, 100+ tools |
-| **Phase 3 — Expanded Platform** | Aug → Dec 2027 | v1.0 | 400+ tools, Threat Detection, Plugin ecosystem |
-| **Phase 4 — Community & Ecosystem** | 2028+ | — | 630+ tools, community plugins, enterprise features |
-
-<details>
-<summary><b>📋 Full detailed roadmap (click to expand)</b></summary>
-
-<br>
-
-**Phase 0 — Foundation** *(September 2026 → February 2027)*
-- [x] Project planning
-- [x] Repository setup
-- [x] Architecture planning
-- [ ] Core CLI architecture
-- [ ] Development environment
-- [ ] Initial documentation
-
-**Phase 1 — Core Modules** *(February → May 2027 · Target: v0.1)*
-- [ ] Network Reconnaissance
-- [ ] Subdomain Enumeration
-- [ ] Hash Analyzer
-- [ ] System Security Auditor
-- [ ] Modular plugin architecture
-- [ ] CLI command structure
-- [ ] Basic output formatting
-- [ ] Unit tests
-
-**Phase 2 — AI & Tool Integration** *(May → August 2027 · Target: v0.5 Beta)*
-- [ ] AI Command Engine
-- [ ] Ollama integration
-- [ ] LangChain integration
-- [ ] Tool-selection layer
-- [ ] 100+ tool integrations target
-- [ ] Improved result parsing
-- [ ] Configuration system
-- [ ] Logging system
-
-**Phase 3 — Expanded Platform** *(August → December 2027 · Target: v1.0)*
-- [ ] Expanded security modules
-- [ ] 400+ tool integrations target
-- [ ] Threat detection module
-- [ ] Malware analysis capabilities
-- [ ] Improved AI workflow
-- [ ] Plugin ecosystem
-- [ ] Documentation expansion
-- [ ] Stable CLI API
-
-**Phase 4 — Community & Ecosystem** *(2028+)*
-- [ ] 630+ tools/modules target
-- [ ] Community plugins
-- [ ] Bug bounty workflow support
-- [ ] Security research integrations
-- [ ] Performance improvements
-- [ ] Enterprise-oriented features
-- [ ] Long-term stable releases
-
-</details>
-
-<br>
-
-## ⚙️ Installation
-
-> ⚠️ AegisCLI is currently under active development. Installation instructions may change before the first stable release.
+## 📦 Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/novemixs/AegisCLI-NMS.git
-
-# Enter the project
 cd AegisCLI-NMS
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run AegisCLI
-python aegis.py --help
+# Launch the Hub
+python aegis-hub.py
+```
+
+**`requirements.txt`:**
+
+```
+rich
+cryptography
+prompt-toolkit
+```
+
+**Requirements:** Python 3.10+ · pip · Linux / macOS / Windows
+
+<br>
+
+## 🛠️ Usage
+
+### Interactive Hub (recommended)
+
+```bash
+python aegis-hub.py
+```
+
+Inside the hub:
+
+| Command | What it does |
+|---|---|
+| `<number>` or `<tool-name>` | Run a tool (e.g. `3` or `nmap`) |
+| `info <tool>` | Show module details |
+| `search <keyword>` | Find tools by name/description |
+| `favorite <tool>` | Star / unstar a tool |
+| `favlist` | List favorites |
+| `history` | Show recent commands |
+| `reload` | Hot-reload all tools (no restart) |
+| `set <key> <value>` | Change config |
+| `config` | Show current config |
+| `clear` | Clear screen |
+| `help` | Show help panel |
+| `exit` / `q` | Quit |
+
+### Non-interactive / Scripting
+
+Each module can also be run standalone with `--json` for pipelines:
+
+```bash
+# Port scan with JSON output
+python tools/nmap.py scanme.nmap.org --json > scan.json
+
+# Subdomain enumeration
+python tools/subfinder.py example.com --json -t 100
+
+# Custom port range, no banner
+python tools/nmap.py 127.0.0.1 -p 22,80,443,8080 --no-banner
 ```
 
 <br>
 
-## 🧰 Technology Stack
+## 🧩 Modules — v0.1 Detail
 
-| Component | Technology |
-|---|---|
-| Language | Python 3.10+ |
-| CLI | Click / Typer |
-| AI Engine | LangChain + Ollama |
-| Containerization | Docker |
-| Package Manager | pip |
-| Distribution | PyPI |
-| Version Control | Git / GitHub |
+### 🌐 `nmap` — TCP Port Scanner
+- Multi-threaded (`ThreadPoolExecutor`, default 200 workers)
+- IPv4 **and** IPv6 via `getaddrinfo`
+- 100+ common-service name map
+- Best-effort banner grabbing (SSH, HTTP, FTP, SMTP…)
+- Hard per-port timeout
+
+### 🔎 `subfinder` — Subdomain Enumerator
+- Built-in ~250 common subdomain wordlist
+- Custom wordlist support
+- Per-lookup **hard timeout** (no hangs on dead DNS)
+- Bounded concurrency via `ThreadPoolExecutor`
+- `@` marker for apex domain
+
+### #️⃣ `hash` — Hash Analyzer & Crypto
+- Identify: MD5, SHA-1/224/256/384/512, NTLM, bcrypt, sha512crypt, md5crypt
+- Compute: MD5, SHA-1/224/256/384/512
+- **AES encrypt/decrypt** via Fernet + PBKDF2 (100k iterations)
+- Failed-attempt lockout protection
+
+### 🔒 `audit` — System Security Auditor
+- World-writable file scan (Linux)
+- Listening-services enumeration (Linux `ss`/`netstat`, Windows `netstat`/PowerShell)
+- Cross-platform dispatcher
 
 <br>
 
-## 🏗️ Architecture
+## 🗺️ Roadmap
+
+| Phase | Timeline | Target | Status |
+|---|---|---|---|
+| **Phase 0 — Foundation** | Sep → Nov 2026 | Setup | ✅ Done |
+| **Phase 1 — Core Modules** | **Dec 9, 2026** | **v0.1** | ✅ **Released** |
+| **Phase 2 — AI Engine** | Q1 → Q2 2027 | v0.5 Beta | 🟡 In Development |
+| **Phase 3 — Expanded Platform** | Q3 2027 | v1.0 | 🔵 Planned |
+| **Phase 4 — Community** | 2028+ | — | 🔵 Planned |
+
+<details>
+<summary><b>📋 Detailed roadmap (click to expand)</b></summary>
+
+<br>
+
+**Phase 1 — Core Modules — v0.1** ✅ *(Released Dec 9, 2026)*
+- [x] Interactive Hub CLI (Rich)
+- [x] Port Scanner module
+- [x] Subdomain Enumerator module
+- [x] Hash Analyzer module
+- [x] System Security Auditor module
+- [x] `SCHEMA` manifest on modules
+- [x] Structured `dict` return from every module
+- [x] `--json` output for scripting
+- [x] Command history · favorites · search · reload
+
+**Phase 2 — AI & Tool Integration** *(Q1 → Q2 2027 · v0.5 Beta)*
+- [ ] AI Command Engine (LangChain + Ollama)
+- [ ] Natural-language → tool selection
+- [ ] Tool-selection layer using `SCHEMA`
+- [ ] 100+ external tool integrations
+- [ ] Configuration system expansion
+- [ ] Structured logging
+
+**Phase 3 — Expanded Platform** *(Q3 2027 · v1.0)*
+- [ ] 400+ tool integrations
+- [ ] Threat detection module
+- [ ] Malware analysis capabilities
+- [ ] Plugin ecosystem (third-party modules)
+- [ ] Stable CLI API
+
+**Phase 4 — Community & Ecosystem** *(2028+)*
+- [ ] 630+ tools/modules
+- [ ] Community plugin registry
+- [ ] Bug-bounty workflow support
+- [ ] Enterprise features
+
+</details>
+
+<br>
+
+## 🏗️ Architecture (v0.1)
 
 ```
                     ┌──────────────────┐
-                    │     AegisCLI     │
-                    │   Command Line   │
+                    │   aegis-hub.py   │   ← Interactive hub
+                    │   (Rich UI)      │
                     └────────┬─────────┘
-                             │
-                    ┌────────▼─────────┐
-                    │  Command Engine  │
-                    └────────┬─────────┘
-                             │
-             ┌───────────────┼───────────────┐
-             │               │               │
-        ┌────▼────┐     ┌────▼─────┐    ┌────▼─────┐
-        │  Recon  │     │ Analysis │    │   Audit  │
-        │ Modules │     │  Modules │    │  Modules │
-        └────┬────┘     └────┬─────┘    └────┬─────┘
-             │               │               │
-             └───────────────┼───────────────┘
-                             │
-                    ┌────────▼─────────┐
-                    │ Tool Integration │
+                             │  dynamic import
+                             ▼
+                    ┌──────────────────┐
+                    │  tools/          │
+                    │  ├── nmap.py     │   ← each exposes:
+                    │  ├── subfinder.py│      description
+                    │  ├── hash.py     │      SCHEMA
+                    │  └── audit.py    │      run(args) -> dict
                     └──────────────────┘
+                             │
+                             ▼
+                    Structured dict result
+                             │
+                             ▼
+              (Phase 2) AI Engine reads _LAST_RESULT
 ```
-
-*The architecture may evolve significantly during development.*
-
-<br>
-
-## 🔐 Responsible Use
-
-AegisCLI is intended for: authorized security testing · security research · CTF environments · lab environments · defensive security · system auditing · educational purposes.
-
-> **Do not use AegisCLI against systems or networks without authorization.**
-
-Users are responsible for complying with all applicable laws and regulations. The project maintainers are not responsible for misuse of the software.
 
 <br>
 
 ## 🤝 Contributing
 
-AegisCLI is an open-source project and contributions are welcome — Python development · security research · module development · tool integrations · AI engineering · documentation · CLI/UX design · testing · bug reports.
+Contributions are welcome — Python dev · security research · module development · tool integrations · AI engineering · docs · CLI/UX · testing.
 
 ```bash
 git clone https://github.com/novemixs/AegisCLI-NMS.git
@@ -353,63 +325,97 @@ git push origin feature/your-feature
 
 Then open a Pull Request.
 
+**Every module must expose:**
+
+```python
+description = "Short description"
+__version__ = "x.y"
+__author__  = "Your Name"
+__category__ = "Recon"          # Recon / Cryptography / System / …
+SCHEMA      = { ... }           # args manifest for the AI engine
+
+def run(args: dict | None = None) -> dict:
+    """Interactive if args is None. Return a structured dict."""
+```
+
+See existing modules in `tools/` for the reference pattern.
+
+<br>
+
+## 🔐 Responsible Use
+
+AegisCLI is intended **only** for:
+
+- Authorized security testing
+- Security research
+- CTF / lab environments
+- Defensive security & system auditing
+- Educational purposes
+
+> **⚠️ Do not use AegisCLI against systems or networks without explicit authorization.**
+
+You are responsible for complying with all applicable laws. The maintainers are not responsible for misuse.
+
 <br>
 
 ## 📊 Project Status
 
 | Component | Status |
 |---|---|
-| Project Architecture | 🟡 Planning |
-| Core CLI | 🟡 Development |
-| Network Recon | 🔵 Planned |
-| Subdomain Enumeration | 🔵 Planned |
-| Hash Analyzer | 🔵 Planned |
-| System Auditor | 🔵 Planned |
+| Interactive Hub CLI | 🟢 Available |
+| Port Scanner (`nmap`) | 🟢 Available |
+| Subdomain Enum (`subfinder`) | 🟢 Available |
+| Hash Analyzer (`hash`) | 🟢 Available |
+| System Auditor (`audit`) | 🟢 Available |
 | AI Engine | 🔵 Planned |
-| Tool Integrations | 🔵 Planned |
-| Threat Detection | 🔵 Planned |
+| 100+ Tool Integrations | 🔵 Planned |
 | 630+ Tools | 🔵 Long-term Goal |
 
-**Legend:** 🟢 Available &nbsp;·&nbsp; 🟡 In Development &nbsp;·&nbsp; 🔵 Planned &nbsp;·&nbsp; 🔴 Deprecated
+**Legend:** 🟢 Available &nbsp;·&nbsp; 🟡 In Development &nbsp;·&nbsp; 🔵 Planned
 
 <br>
 
 ## 💰 Support the Project
 
-AegisCLI is intended to remain free and open source. Development may require funding for:
+AegisCLI is free and open source. Development costs:
 
-| Item | Estimated Cost |
+| Item | Estimated |
 |---|---|
 | Development PC | $1,500 |
 | Cloud Server — 1 year | $300 |
 | Domain & SSL | $50 |
-| Testing / Development Tools | $150 |
+| Testing / Dev Tools | $150 |
 | **Total** | **$2,000** |
 
-⭐ Star the repository &nbsp;·&nbsp; 🐛 Report bugs &nbsp;·&nbsp; 💡 Suggest features &nbsp;·&nbsp; 🤝 Contribute code &nbsp;·&nbsp; 📢 Share the project &nbsp;·&nbsp; 💖 Sponsor when available
+⭐ Star · 🐛 Report bugs · 💡 Suggest features · 🤝 Contribute · 📢 Share · 💖 Sponsor (soon)
 
 <br>
 
 ## 📬 Contact
 
-**Developer:** Md Siyam Mahmud
+**Md Siyam Mahmud**
 
-📧 [novemixs@gmail.com](mailto:novemixs@gmail.com) &nbsp;·&nbsp; 🐙 [@siyam201](https://github.com/siyam201) &nbsp;·&nbsp; 📁 [AegisCLI-NMS](https://github.com/novemixs/AegisCLI-NMS)
+📧 [novemixs@gmail.com](mailto:novemixs@gmail.com) &nbsp;·&nbsp;
+🐙 [@siyam201](https://github.com/siyam201) &nbsp;·&nbsp;
+📁 [AegisCLI-NMS](https://github.com/novemixs/AegisCLI-NMS)
 
 <br>
 
 ## 📄 License
 
-Released under the **MIT License** — Copyright © 2026 Md Siyam Mahmud. See [LICENSE](LICENSE) for the complete license text.
+Released under the **MIT License** — Copyright © 2026 Md Siyam Mahmud. See [LICENSE](LICENSE).
 
 <br>
 
 <div align="center">
 
-### ⚔️ AegisCLI
-*«One CLI. One modular security platform.»*
+### ⚔️ AegisCLI v0.1
 
-⭐ **Star the repository if you want to follow the development.**
+*«One CLI. Modular Security. Built in the open.»*
+
+**Released December 9, 2026**
+
+⭐ **Star the repository if you want to follow development.**
 
 [**→ GitHub Repository**](https://github.com/novemixs/AegisCLI-NMS)
 
