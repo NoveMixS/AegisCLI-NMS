@@ -348,6 +348,9 @@ def run(args: dict | None = None) -> dict:
 
 See existing modules in `tools/` for the reference pattern.
 
+📖 **Full contributor guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
+📋 **Version history:** [CHANGELOG.md](CHANGELOG.md)
+
 <br>
 
 ## 🔐 Responsible Use
