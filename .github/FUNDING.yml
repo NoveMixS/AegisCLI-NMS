@@ -1,6 +1,6 @@
 github: [siyam201]
 patreon: # Replace with a single Patreon username
-open_collective: # Replace with a single Open Collective username
+open_collective: aegiscli-nms 
 ko_fi: # Replace with a single Ko-fi username
 tidelift: # Replace with a single Tidelift platform-name/package-name
 community_bridge: # Replace with a single Community Bridge project-name
@@ -11,7 +11,5 @@ polar: # Replace with a single Polar username
 buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
 thanks_dev: # Replace with a single thanks.dev username
 custom: [
-  'https://app.binance.com/uni-qr/request-to-pay?billOrderId=452647215534342144&billType=split_bill',
   'https://bscscan.com/address/0x68b39a86fa87e8aa43ba75b0a14a14e5d182dbb5',
-  'https://app.binance.com/uni-qr/ErFEM9nR'
 ]
