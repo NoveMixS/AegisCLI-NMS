@@ -484,8 +484,16 @@ AegisCLI is free and open source, built in the open.
 
 **Ways to help:** ⭐ Star · 🐛 Report bugs · 💡 Suggest features · 🤝 Contribute · 📢 Share
 
-**Sponsor us:**
-[💖 GitHub Sponsors](https://github.com/sponsors/siyam201) · [🌍 Open Collective](https://opencollective.com/)
+**Sponsor us (crypto):**
+
+| Asset | Network | Address |
+|---|---|---|
+| BNB | BNB Smart Chain (BEP-20) | `0x68b39a86fa87e8aa43ba75b0a14a14e5d182dbb5` |
+| USDT | BNB Smart Chain (BEP-20) | `0x68b39a86fa87e8aa43ba75b0a14a14e5d182dbb5` |
+| USDC | BNB Smart Chain (BEP-20) | `0x68b39a86fa87e8aa43ba75b0a14a14e5d182dbb5` |
+| BTC | Bitcoin (native) | `1Q4GKqPmmTyAR2yRHn3gsf3CLutYDCN2NK` |
+
+> ⚠️ Match the **network** exactly. BNB / USDT / USDC → **BEP-20 only**. Native BTC → **Bitcoin network only**. Wrong-network transfers may be lost permanently.
 
 ---
 
