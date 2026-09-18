@@ -1,129 +1,252 @@
 #!/usr/bin/env python3
 """
-AegisCLI Hub v2.1 - Enhanced with history, search, favorites, and more.
+AegisCLI Hub v2.4
+Modern security toolkit hub with animations and rich UI.
 """
 
 import os
 import sys
+
+# ======================================================================
+# Windows UTF-8 + ANSI fix — MUST run BEFORE importing Rich
+# ======================================================================
+if os.name == "nt":
+    try:
+        os.system("chcp 65001 >nul 2>&1")
+    except Exception:
+        pass
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONUTF8"] = "1"
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        kernel32.SetConsoleOutputCP(65001)
+        kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass
+
+# Now safe to import Rich
 import json
+import time
 import argparse
 import importlib.util
 from datetime import datetime
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
-from rich import box
-from rich.markdown import Markdown
+from rich.rule import Rule
 from rich.text import Text
+from rich.align import Align
+from rich.live import Live
+from rich.spinner import Spinner
+from rich import box
 
-# ----------------------------------------------------------------------
-# Configuration & Constants
-# ----------------------------------------------------------------------
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aegis_config.json")
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aegis.log")
+# ======================================================================
+# Constants
+# ======================================================================
+CONFIG_FILE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aegis_config.json")
+LOG_FILE     = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aegis.log")
 HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aegis_history.txt")
-VERSION = "2.1"
 
-console = Console()
-# Global store for the last tool result per tool (Phase 2 AI engine will read this)
+VERSION = "2.4"
+
+# Force Rich to emit ANSI + truecolor even in weird terminals
+console = Console(force_terminal=True, color_system="truecolor", legacy_windows=False)
+
 _LAST_RESULT: dict = {}
-# Updated Banner with version
-BANNER = """
-[bold cyan]
-  █████╗ ███████╗ ██████╗ ██╗███████╗    ██████╗██╗     ██╗
- ██╔══██╗██╔════╝██╔════╝ ██║██╔════╝   ██╔════╝██║     ██║
- ███████║█████╗  ██║  ███╗██║███████╗   ██║     ██║     ██║
- ██╔══██║██╔══╝  ██║   ██║██║╚════██║   ██║     ██║     ██║
- ██║  ██║███████╗╚██████╔╝██║███████║   ╚██████╗███████╗██║
- ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝╚══════╝    ╚═════╝╚══════╝╚═╝
-[/bold cyan]
-[bold yellow]⚔️  AI-Powered Modular Security CLI Toolkit[/bold yellow]
-[dim]├─ Version: {}[/dim]
-[dim]├─ Developed by Md Siyam Mahmud[/dim]
-[dim]├─ GitHub: github.com/siyam201  |  Org: github.com/novemixs[/dim]
-[dim]└─ Type 'help' for commands, 'exit' to quit.[/dim]
-""".format(VERSION)
+
+# Color palette
+C = {
+    "primary":   "bright_cyan",
+    "secondary": "bright_magenta",
+    "accent":    "bright_yellow",
+    "success":   "bright_green",
+    "warning":   "orange1",
+    "danger":    "bright_red",
+    "muted":     "grey54",
+    "text":      "white",
+    "link":      "bright_blue",
+}
+
+CATEGORY_STYLE = {
+    "Recon":        ("🔍", "cyan"),
+    "Web":          ("🌐", "magenta"),
+    "Cryptography": ("🔐", "yellow"),
+    "System":       ("⚙️",  "green"),
+    "Network":      ("📡", "blue"),
+    "General":      ("📦", "white"),
+}
+
+TOOL_ALIASES = {
+    "audit":        ["au", "aud"],
+    "dirbrute":     ["db", "dir"],
+    "dnsrecon":     ["dr", "dns"],
+    "hash":         ["h", "ha"],
+    "http_headers": ["hh", "hdr", "headers"],
+    "httpx_probe":  ["hp", "httpx", "probe"],
+    "nmap":         ["nm", "port"],
+    "sslscan":      ["ss", "ssl"],
+    "subfinder":    ["sf", "sub"],
+    "whois":        ["w", "who"],
+}
 
 DEFAULT_CONFIG = {
     "last_tool": None,
     "auto_clear": True,
     "log_errors": True,
     "favorites": [],
+    "animations": True,
 }
 
-# ----------------------------------------------------------------------
+BANNER_ART = """
+  █████╗ ███████╗ ██████╗ ██╗███████╗     ██████╗██╗     ██╗
+ ██╔══██╗██╔════╝██╔════╝ ██║██╔════╝    ██╔════╝██║     ██║
+ ███████║█████╗  ██║  ███╗██║███████╗    ██║     ██║     ██║
+ ██╔══██║██╔══╝  ██║   ██║██║╚════██║    ██║     ██║     ██║
+ ██║  ██║███████╗╚██████╔╝██║███████║    ╚██████╗███████╗██║
+ ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝╚══════╝     ╚═════╝╚══════╝╚═╝
+"""
+
+
+# ======================================================================
+# Animations
+# ======================================================================
+def is_animated(config):
+    return config.get("animations", True)
+
+
+def boot_animation(config):
+    """Boot sequence with proper markup handling."""
+    if not is_animated(config):
+        return
+
+    console.clear()
+    console.print()
+
+    # Use explicit text + style — no markup inside Text object
+    lines = [
+        ("⚔️  AegisCLI v" + VERSION, f"bold {C['primary']}", 0.015),
+        ("→ Initializing hub...", C['muted'], 0.008),
+        ("→ Loading modules...", C['muted'], 0.008),
+        ("→ Ready.", C['success'], 0.008),
+    ]
+
+    for text_content, style, delay in lines:
+        for ch in text_content:
+            try:
+                console.print(ch, end="", style=style, highlight=False, soft_wrap=True)
+            except Exception:
+                sys.stdout.write(ch)
+                sys.stdout.flush()
+            time.sleep(delay)
+        console.print()
+        time.sleep(0.05)
+
+    time.sleep(0.3)
+
+
+def loader_spinner(message, duration=1.0, config=None):
+    """Show a spinner with a message."""
+    if config and not is_animated(config):
+        console.print(f"[{C['muted']}]{message}[/{C['muted']}]")
+        return
+    try:
+        with Live(Spinner("dots", text=f"[{C['primary']}] {message}[/{C['primary']}]"),
+                  console=console, refresh_per_second=12, transient=True):
+            time.sleep(duration)
+    except Exception:
+        console.print(f"[{C['muted']}]{message}[/{C['muted']}]")
+        time.sleep(duration)
+
+
+def success_toast(message):
+    console.print(f"[{C['success']}]✓[/{C['success']}] {message}")
+
+
+# ======================================================================
 # Logger & History
-# ----------------------------------------------------------------------
-def log_error(message: str):
+# ======================================================================
+def log_error(message):
     if not load_config().get("log_errors", True):
         return
     try:
-        with open(LOG_FILE, "a") as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{timestamp}] {message}\n")
-    except:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{ts}] {message}\n")
+    except Exception:
         pass
 
-def add_history(command: str):
-    """Add command to history file (last 50 entries)."""
+
+def add_history(command):
     try:
-        # Read existing history
         history = []
         if os.path.exists(HISTORY_FILE):
-            with open(HISTORY_FILE, "r") as f:
-                history = [line.strip() for line in f.readlines() if line.strip()]
-        # Append new command
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = [l.strip() for l in f.readlines() if l.strip()]
         history.append(command)
-        # Keep last 50
         if len(history) > 50:
             history = history[-50:]
-        # Write back
-        with open(HISTORY_FILE, "w") as f:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             f.write("\n".join(history) + "\n")
-    except:
+    except Exception:
         pass
 
+
 def get_history():
-    """Return list of last commands."""
     if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r") as f:
-            return [line.strip() for line in f.readlines() if line.strip()]
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                return [l.strip() for l in f.readlines() if l.strip()]
+        except Exception:
+            return []
     return []
 
-# ----------------------------------------------------------------------
-# Config Manager
-# ----------------------------------------------------------------------
+
+# ======================================================================
+# Config
+# ======================================================================
 def load_config():
     if os.path.exists(CONFIG_FILE):
         try:
-            with open(CONFIG_FILE, "r") as f:
-                return json.load(f)
-        except:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                for k, v in DEFAULT_CONFIG.items():
+                    cfg.setdefault(k, v)
+                return cfg
+        except Exception:
             return DEFAULT_CONFIG.copy()
-    else:
-        save_config(DEFAULT_CONFIG)
-        return DEFAULT_CONFIG.copy()
+    save_config(DEFAULT_CONFIG)
+    return DEFAULT_CONFIG.copy()
+
 
 def save_config(config):
     try:
-        with open(CONFIG_FILE, "w") as f:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=4)
-    except:
+    except Exception:
         pass
 
-# ----------------------------------------------------------------------
-# Tool Loader (with metadata and category)
-# ----------------------------------------------------------------------
-def load_tools():
+
+# ======================================================================
+# Tool Loader
+# ======================================================================
+def load_tools(config=None):
     tools = {}
     tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools")
     if not os.path.exists(tools_dir):
         os.makedirs(tools_dir)
-        console.print("[yellow]📁 Created 'tools/' directory. Please add tool modules.[/yellow]")
+        console.print(f"[{C['warning']}]📁 Created tools/ directory.[/{C['warning']}]")
         return tools
 
-    for filename in os.listdir(tools_dir):
+    for filename in sorted(os.listdir(tools_dir)):
         if filename.endswith(".py") and not filename.startswith("__"):
             module_name = filename[:-3]
             filepath = os.path.join(tools_dir, filename)
@@ -134,385 +257,534 @@ def load_tools():
 
                 if hasattr(module, "run") and hasattr(module, "description"):
                     tools[module_name] = {
-                        "module": module,
+                        "module":      module,
                         "description": module.description,
-                        "version": getattr(module, "__version__", "1.0"),
-                        "author": getattr(module, "__author__", "Unknown"),
-                        "category": getattr(module, "__category__", "General"),
+                        "version":     getattr(module, "__version__", "1.0"),
+                        "author":      getattr(module, "__author__", "Unknown"),
+                        "category":    getattr(module, "__category__", "General"),
                     }
-                else:
-                    console.print(f"[dim]⚠️  Skipping {filename}: missing 'run()' or 'description'[/dim]")
             except Exception as e:
-                err_msg = f"Error loading {module_name}: {e}"
-                console.print(f"[red]❌ {err_msg}[/red]")
-                log_error(err_msg)
+                err = f"Error loading {module_name}: {e}"
+                console.print(f"[{C['danger']}]✖ {err}[/{C['danger']}]")
+                log_error(err)
     return tools
 
-# ----------------------------------------------------------------------
-# Command Handlers
-# ----------------------------------------------------------------------
+
+def resolve_tool(choice, tools):
+    """Number, full name, or short alias → tool name."""
+    if not choice or not tools:
+        return None
+    choice_lower = choice.lower().strip()
+
+    if choice_lower.isdigit():
+        idx = int(choice_lower) - 1
+        tool_list = list(tools.keys())
+        if 0 <= idx < len(tool_list):
+            return tool_list[idx]
+        return None
+
+    if choice_lower in tools:
+        return choice_lower
+
+    for tool_name, aliases in TOOL_ALIASES.items():
+        if choice_lower in aliases and tool_name in tools:
+            return tool_name
+
+    matches = [t for t in tools if t.startswith(choice_lower)]
+    if len(matches) == 1:
+        return matches[0]
+
+    return None
+
+
+# ======================================================================
+# Menu
+# ======================================================================
+def print_banner():
+    # ASCII art
+    banner_text = Text()
+    banner_text.append(BANNER_ART, style=f"bold {C['primary']}")
+
+    # Subtitle
+    subtitle = Text()
+    subtitle.append("  ⚔️  ", style=f"bold {C['accent']}")
+    subtitle.append("AI-Powered Modular Security CLI Toolkit", style=f"bold {C['accent']}")
+    console.print(Align.center(banner_text))
+    console.print(Align.center(subtitle))
+    console.print()
+
+    # Author + version + links panel
+    info_line1 = Text()
+    info_line1.append("Version:  ", style=C['muted'])
+    info_line1.append(f"v{VERSION}", style=f"bold {C['success']}")
+    info_line1.append("     ·     ", style=C['muted'])
+    info_line1.append("Author:  ", style=C['muted'])
+    info_line1.append("Md Siyam Mahmud", style=f"bold {C['text']}")
+
+    info_line2 = Text()
+    info_line2.append("GitHub:  ", style=C['muted'])
+    info_line2.append("@siyam201", style=f"bold {C['link']}")
+    info_line2.append("     ·     ", style=C['muted'])
+    info_line2.append("Org:  ", style=C['muted'])
+    info_line2.append("@novemixs", style=f"bold {C['link']}")
+
+    info_line3 = Text()
+    info_line3.append("Repo:  ", style=C['muted'])
+    info_line3.append("github.com/novemixs/AegisCLI-NMS", style=f"bold {C['link']}")
+
+    # Panel with info
+    from rich.panel import Panel
+    info_content = Text()
+    info_content.append_text(info_line1)
+    info_content.append("\n")
+    info_content.append_text(info_line2)
+    info_content.append("\n")
+    info_content.append_text(info_line3)
+
+    console.print(Align.center(Panel(
+        info_content,
+        border_style=C['primary'],
+        padding=(0, 2),
+        width=80,
+    )))
+
+
 def display_menu(tools, config):
     if config.get("auto_clear", True):
         console.clear()
 
-    console.print(Panel(BANNER, border_style="blue", box=box.DOUBLE_EDGE))
+    print_banner()
+    console.print()
 
     tool_count = len(tools)
-    status_color = "green" if tool_count > 0 else "red"
-    console.rule(f"[bold] MAIN HUB MENU  |  Tools Loaded: [{status_color}]{tool_count}[/{status_color}] [/bold]")
+    fav_count = len(config.get("favorites", []))
+    last_tool = config.get("last_tool") or "—"
+
+    status = Text()
+    status.append("  ● ", style=C['success'])
+    status.append(f"{tool_count}", style=f"bold {C['success']}")
+    status.append(" tools", style=C['muted'])
+    status.append("   ● ", style=C['accent'])
+    status.append(f"{fav_count}", style=f"bold {C['accent']}")
+    status.append(" favorites", style=C['muted'])
+    status.append("   ● ", style=C['primary'])
+    status.append(f"{last_tool}", style=f"bold {C['primary']}")
+    status.append(" last used", style=C['muted'])
+
+    console.print(status)
+    console.print()
 
     if not tools:
-        console.print("[red]No tools found in the 'tools/' directory.[/red]")
-        console.print("[dim]Add a Python file with 'run()' and 'description' in 'tools/'[/dim]")
-        console.print("\n[bold]Available commands:[/bold]")
-        console.print("[cyan]  help[/cyan]  - Show this menu again")
-        console.print("[cyan]  reload[/cyan] - Reload all tools without restart")
-        console.print("[cyan]  info <tool>[/cyan] - Show tool details")
-        console.print("[cyan]  search <keyword>[/cyan] - Search tools by description")
-        console.print("[cyan]  favorite <tool>[/cyan] - Mark/unmark tool as favorite")
-        console.print("[cyan]  favlist[/cyan] - List favorite tools")
-        console.print("[cyan]  history[/cyan] - Show command history")
-        console.print("[cyan]  clear[/cyan] - Clear screen")
-        console.print("[cyan]  set <key> <value>[/cyan] - Change config (e.g., set auto_clear false)")
-        console.print("[cyan]  config[/cyan]  - Show current configuration")
-        console.print("[cyan]  exit/q[/cyan]  - Quit AegisCLI")
+        console.print(Panel(
+            f"[{C['danger']}]No tools found in tools/ directory.[/{C['danger']}]",
+            border_style=C['danger'], padding=(1, 2),
+        ))
         return
 
-    # Table with category
-    table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
-    table.add_column("SL", style="dim", width=4, justify="center")
-    table.add_column("Tool Name", style="cyan", no_wrap=True)
-    table.add_column("Description", style="white")
-    table.add_column("Version", style="green", width=10, justify="center")
-    table.add_column("Category", style="yellow", width=12, justify="center")
+    table = Table(
+        show_header=True,
+        header_style=f"bold {C['primary']}",
+        box=box.ROUNDED,
+        border_style=C['muted'],
+        padding=(0, 1),
+    )
+    table.add_column("#",           style=C['muted'],  width=3,  justify="right")
+    table.add_column("",            width=2,  justify="center")
+    table.add_column("Tool",        style=f"bold {C['text']}", no_wrap=True, width=14)
+    table.add_column("Description", style=C['text'],   width=44)
+    table.add_column("Ver",         style=C['success'], width=5, justify="center")
+    table.add_column("Category",    width=15, justify="center")
+    table.add_column("Alias",       style=C['muted'], width=6, justify="center")
 
     tool_list = list(tools.keys())
-    config_favs = config.get("favorites", [])
-    for i, tool_name in enumerate(tool_list, 1):
-        is_fav = "⭐" if tool_name in config_favs else ""
+    favs = config.get("favorites", [])
+
+    for i, name in enumerate(tool_list, 1):
+        cat = tools[name]["category"]
+        icon, color = CATEGORY_STYLE.get(cat, ("•", "white"))
+        fav_star = f"[{C['accent']}]★[/{C['accent']}]" if name in favs else " "
+        aliases = TOOL_ALIASES.get(name, [])
+        short = aliases[0] if aliases else "—"
+
         table.add_row(
             str(i),
-            f"{is_fav} {tool_name}",
-            tools[tool_name]["description"],
-            tools[tool_name]["version"],
-            tools[tool_name]["category"],
+            fav_star,
+            f"[{color}]{name}[/{color}]",
+            tools[name]["description"],
+            tools[name]["version"],
+            f"[{color}]{icon} {cat}[/{color}]",
+            short,
         )
 
     console.print(table)
-    console.rule("[bold] COMMANDS [/bold]")
-    console.print(
-        "[dim]  Run: Enter SL number or Tool Name  |  "
-        "reload  |  info <tool>  |  search <kw>  |  favorite <tool>  |  favlist  |  history  |  clear  |  set  |  config  |  exit/q[/dim]"
-    )
     console.print()
 
-# ----------------------------------------------------------------------
-# Search Tools
-# ----------------------------------------------------------------------
-def search_tools(tools, keyword):
-    """Search tools by description or name."""
-    keyword = keyword.lower()
-    matches = []
-    for name, data in tools.items():
-        if keyword in name.lower() or keyword in data["description"].lower():
-            matches.append((name, data["description"]))
-    if not matches:
-        console.print(f"[yellow]No tools found matching '{keyword}'.[/yellow]")
-    else:
-        table = Table(title=f"🔍 Search Results for '{keyword}'", box=box.ROUNDED)
-        table.add_column("Tool", style="cyan")
-        table.add_column("Description", style="white")
-        for name, desc in matches:
-            table.add_row(name, desc)
-        console.print(table)
+    console.print(Rule(style=C['muted']))
 
-# ----------------------------------------------------------------------
-# Favorites Management
-# ----------------------------------------------------------------------
+    cmd1 = Text()
+    cmd1.append("  ▶ ", style=f"bold {C['primary']}")
+    cmd1.append("Run", style=f"bold {C['text']}")
+    cmd1.append(": number, name, or alias", style=C['muted'])
+    console.print(cmd1)
+
+    cmd2 = Text()
+    cmd2.append("  │  ", style=C['muted'])
+    for c in ["reload", "info <tool>", "search <kw>", "favorite <tool>"]:
+        cmd2.append(f"{c}  ", style=C['link'])
+    console.print(cmd2)
+
+    cmd3 = Text()
+    cmd3.append("  │  ", style=C['muted'])
+    for c in ["favlist", "history", "clear", "set", "config", "help", "exit"]:
+        cmd3.append(f"{c}  ", style=C['link'])
+    console.print(cmd3)
+    console.print()
+
+
+# ======================================================================
+# Search / Favorites
+# ======================================================================
+def search_tools(tools, keyword):
+    keyword = keyword.lower()
+    matches = [(n, d) for n, d in tools.items()
+               if keyword in n.lower() or keyword in d["description"].lower()]
+
+    if not matches:
+        console.print(Panel(
+            f"[{C['warning']}]No tools matched '{keyword}'[/{C['warning']}]",
+            border_style=C['warning'], padding=(0, 2),
+        ))
+        return
+
+    table = Table(
+        title=f"🔍  {len(matches)} match(es) for '{keyword}'",
+        title_style=f"bold {C['primary']}",
+        box=box.ROUNDED, border_style=C['muted'], padding=(0, 1),
+    )
+    table.add_column("Tool",        style=f"bold {C['text']}", width=16)
+    table.add_column("Description", style=C['text'])
+    table.add_column("Category",    width=16, justify="center")
+
+    for name, data in matches:
+        icon, color = CATEGORY_STYLE.get(data["category"], ("•", "white"))
+        table.add_row(name, data["description"], f"[{color}]{icon} {data['category']}[/{color}]")
+    console.print(table)
+
+
 def toggle_favorite(config, tool_name, tools):
     if tool_name not in tools:
-        console.print(f"[red]Tool '{tool_name}' not found.[/red]")
+        console.print(f"[{C['danger']}]✖ Tool '{tool_name}' not found.[/{C['danger']}]")
         return config
     favs = config.get("favorites", [])
     if tool_name in favs:
         favs.remove(tool_name)
-        console.print(f"[yellow]➖ Removed '{tool_name}' from favorites.[/yellow]")
+        console.print(f"[{C['warning']}]★ Removed '{tool_name}' from favorites.[/{C['warning']}]")
     else:
         favs.append(tool_name)
-        console.print(f"[green]➕ Added '{tool_name}' to favorites.[/green]")
+        console.print(f"[{C['success']}]★ Added '{tool_name}' to favorites.[/{C['success']}]")
     config["favorites"] = favs
     save_config(config)
     return config
 
+
 def list_favorites(tools, config):
     favs = config.get("favorites", [])
     if not favs:
-        console.print("[yellow]No favorite tools.[/yellow]")
+        console.print(f"[{C['muted']}]No favorites yet. Use: favorite <tool>[/{C['muted']}]")
         return
-    table = Table(title="⭐ Favorite Tools", box=box.ROUNDED)
-    table.add_column("Tool", style="cyan")
-    table.add_column("Description", style="white")
+    table = Table(
+        title="★  Favorites", title_style=f"bold {C['accent']}",
+        box=box.ROUNDED, border_style=C['muted'],
+    )
+    table.add_column("Tool",        style=f"bold {C['text']}", width=16)
+    table.add_column("Description", style=C['text'])
     for name in favs:
         if name in tools:
             table.add_row(name, tools[name]["description"])
         else:
-            table.add_row(name, "[red]Tool not loaded[/red]")
+            table.add_row(name, f"[{C['danger']}]not loaded[/{C['danger']}]")
     console.print(table)
 
-# ----------------------------------------------------------------------
-# Config Set Command
-# ----------------------------------------------------------------------
+
+# ======================================================================
+# Config helpers
+# ======================================================================
 def config_set(config, key, value):
-    """Update a configuration value."""
     if key not in config:
-        console.print(f"[red]Unknown config key '{key}'. Valid keys: {list(config.keys())}[/red]")
+        console.print(f"[{C['danger']}]Unknown key '{key}'.[/{C['danger']}]")
         return config
-    # Convert value to appropriate type
     if isinstance(config[key], bool):
-        if value.lower() in ["true", "1", "yes", "on"]:
+        if value.lower() in ("true", "1", "yes", "on"):
             value = True
-        elif value.lower() in ["false", "0", "no", "off"]:
+        elif value.lower() in ("false", "0", "no", "off"):
             value = False
         else:
-            console.print("[red]Invalid boolean value. Use true/false.[/red]")
+            console.print(f"[{C['danger']}]Use true/false.[/{C['danger']}]")
             return config
     elif isinstance(config[key], int):
         try:
             value = int(value)
-        except:
-            console.print("[red]Invalid integer value.[/red]")
+        except Exception:
+            console.print(f"[{C['danger']}]Invalid integer.[/{C['danger']}]")
             return config
     elif isinstance(config[key], list):
-        # For simplicity, we treat as string, but we don't support setting list from CLI easily.
-        console.print("[red]Setting list values is not supported via 'set'. Use config file.[/red]")
+        console.print(f"[{C['danger']}]Use config file for lists.[/{C['danger']}]")
         return config
     config[key] = value
     save_config(config)
-    console.print(f"[green]✅ Config '{key}' set to '{value}'.[/green]")
+    success_toast(f"Config '{key}' = '{value}'")
     return config
 
-# ----------------------------------------------------------------------
-# Tool Runner
-# ----------------------------------------------------------------------
-def run_tool(tools, tool_name):
-    if tool_name not in tools:
-        console.print(f"[red]✖ Tool '{tool_name}' not found.[/red]")
-        return
 
-    console.print(f"\n[bold cyan]▶ Loading tool:[/bold cyan] {tool_name} "
-                  f"[dim](v{tools[tool_name]['version']})[/dim]\n")
-    try:
-        result = tools[tool_name]["module"].run()
-        # Phase 2 hook: store last result for the AI engine
-        if isinstance(result, dict):
-            _LAST_RESULT[tool_name] = result
-    except KeyboardInterrupt:
-        console.print("\n[yellow]⏹️  Tool execution interrupted by user.[/yellow]")
-    except Exception as e:
-        err_msg = f"Execution error in {tool_name}: {e}"
-        console.print(f"[red]❌ {err_msg}[/red]")
-        log_error(err_msg)
-
-    # Hub owns the pause — tools should NOT prompt
-    console.print("\n[dim]Press Enter to return to the main menu...[/dim]")
-    input()
-
-# ----------------------------------------------------------------------
-# Main Loop
-# ----------------------------------------------------------------------
-def main():
-    parser = argparse.ArgumentParser(description="AegisCLI - Modern Security Toolkit")
-    parser.add_argument("--run", help="Run a specific tool directly", metavar="TOOL_NAME")
-    parser.add_argument("--list", action="store_true", help="List all available tools")
-    parser.add_argument("--version", action="version", version=f"AegisCLI v{VERSION}")
-    args = parser.parse_args()
-
-    config = load_config()
-    tools = load_tools()
-
-    if args.list:
-        if not tools:
-            console.print("[red]No tools found.[/red]")
-            return
-        console.print("[bold]Available Tools:[/bold]")
-        for name, data in tools.items():
-            console.print(f"  [cyan]{name}[/cyan] - {data['description']} [dim](v{data['version']}, {data['category']})[/dim]")
-        return
-
-    if args.run:
-        run_tool(tools, args.run)
-        return
-
-    # Interactive
-    while True:
-        display_menu(tools, config)
-        # Show last used tool in prompt
-        last_tool = config.get("last_tool")
-        prompt_suffix = f" [dim](last: {last_tool})[/dim]" if last_tool and last_tool in tools else ""
-        choice = Prompt.ask(f"[bold magenta]aegis-hub>[/bold magenta]{prompt_suffix}").strip()
-        add_history(choice)
-        choice_lower = choice.lower()
-
-        # Exit
-        if choice_lower in ["exit", "quit", "q", "0"]:
-            console.print("\n[bold green]✅ GOOD BYE! Exiting Aegis-CLI Hub...[/bold green]\n")
-            sys.exit(0)
-
-        # Reload
-        if choice_lower == "reload":
-            console.print("[yellow]🔄 Reloading tools...[/yellow]")
-            tools = load_tools()
-            console.print("[green]✅ Tools reloaded successfully![/green]")
-            continue
-
-        # Help
-        if choice_lower == "help":
-            # Display help (will be shown in menu, but we can show a detailed help panel)
-            console.print(Panel(
-                "[bold]Available Commands:[/bold]\n"
-                "  [cyan]<SL>[/] or [cyan]<tool_name>[/] - Run a tool\n"
-                "  [cyan]reload[/] - Reload all tools\n"
-                "  [cyan]info <tool>[/] - Show tool details\n"
-                "  [cyan]search <keyword>[/] - Search tools by description\n"
-                "  [cyan]favorite <tool>[/] - Toggle favorite status\n"
-                "  [cyan]favlist[/] - List favorite tools\n"
-                "  [cyan]history[/] - Show command history\n"
-                "  [cyan]clear[/] - Clear screen\n"
-                "  [cyan]set <key> <value>[/] - Change config setting\n"
-                "  [cyan]config[/] - Show current configuration\n"
-                "  [cyan]exit[/], [cyan]quit[/], [cyan]q[/] - Exit hub",
-                title="Help", border_style="green"
-            ))
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Clear
-        if choice_lower == "clear":
-            console.clear()
-            continue
-
-        # History
-        if choice_lower == "history":
-            hist = get_history()
-            if not hist:
-                console.print("[yellow]No command history.[/yellow]")
-            else:
-                table = Table(title="Command History", box=box.ROUNDED)
-                table.add_column("#", style="dim")
-                table.add_column("Command", style="white")
-                for i, cmd in enumerate(hist, 1):
-                    table.add_row(str(i), cmd)
-                console.print(table)
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Config
-        if choice_lower == "config":
-            show_config(config)
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Set config
-        if choice_lower.startswith("set "):
-            parts = choice.split(maxsplit=2)
-            if len(parts) == 3:
-                _, key, value = parts
-                config = config_set(config, key, value)
-            else:
-                console.print("[red]Usage: set <key> <value>[/red]")
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Search
-        if choice_lower.startswith("search "):
-            keyword = choice[7:].strip()
-            if keyword:
-                search_tools(tools, keyword)
-            else:
-                console.print("[red]Usage: search <keyword>[/red]")
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Info
-        if choice_lower.startswith("info "):
-            tool = choice[5:].strip()
-            if tool:
-                show_tool_info(tools, tool)
-            else:
-                console.print("[red]Usage: info <tool>[/red]")
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Favorite
-        if choice_lower.startswith("favorite "):
-            tool = choice[9:].strip()
-            if tool:
-                config = toggle_favorite(config, tool, tools)
-            else:
-                console.print("[red]Usage: favorite <tool>[/red]")
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Favlist
-        if choice_lower == "favlist":
-            list_favorites(tools, config)
-            input("[dim]Press Enter to continue...[/dim]")
-            continue
-
-        # Run by SL or name
-        selected_tool = None
-        if choice.isdigit() and 1 <= int(choice) <= len(tools):
-            selected_tool = list(tools.keys())[int(choice)-1]
-        elif choice in tools:
-            selected_tool = choice
-
-        if selected_tool:
-            run_tool(tools, selected_tool)
-            config["last_tool"] = selected_tool
-            save_config(config)
-        else:
-            console.print("[bold red]✖ Invalid selection! Use SL number, Tool Name, or a valid command.[/bold red]")
-            input("[dim]Press Enter to continue...[/dim]")
-
-# ----------------------------------------------------------------------
-# Show config (helper)
-# ----------------------------------------------------------------------
 def show_config(config):
-    table = Table(title="⚙️  Current Configuration", box=box.HEAVY_EDGE)
-    table.add_column("Setting", style="cyan")
-    table.add_column("Value", style="white")
-    for key, val in config.items():
-        table.add_row(key, str(val))
+    table = Table(
+        title="⚙️  Configuration",
+        title_style=f"bold {C['primary']}",
+        box=box.ROUNDED, border_style=C['muted'],
+    )
+    table.add_column("Setting", style=f"bold {C['text']}", width=18)
+    table.add_column("Value",   style=C['text'])
+    for k, v in config.items():
+        table.add_row(k, str(v))
     console.print(table)
-    if Confirm.ask("[yellow]Reset configuration to defaults?[/yellow]"):
+    if Confirm.ask(f"[{C['warning']}]Reset to defaults?[/{C['warning']}]", default=False):
         save_config(DEFAULT_CONFIG)
-        console.print("[green]✅ Configuration reset to defaults. Restart hub to apply.[/green]")
+        success_toast("Reset done.")
+
 
 def show_tool_info(tools, tool_name):
     if tool_name not in tools:
-        console.print(f"[red]Tool '{tool_name}' not found.[/red]")
+        console.print(f"[{C['danger']}]✖ Tool '{tool_name}' not found.[/{C['danger']}]")
         return
     data = tools[tool_name]
-    info_table = Table(title=f"📊 Tool Info: {tool_name}", box=box.HEAVY_EDGE)
-    info_table.add_column("Property", style="cyan", width=15)
-    info_table.add_column("Value", style="white")
-    info_table.add_row("Description", data["description"])
-    info_table.add_row("Version", data["version"])
-    info_table.add_row("Author", data["author"])
-    info_table.add_row("Category", data["category"])
-    info_table.add_row("Module Path", f"tools/{tool_name}.py")
-    console.print(info_table)
+    icon, color = CATEGORY_STYLE.get(data["category"], ("•", "white"))
+    table = Table(
+        title=f"{icon}  {tool_name}",
+        title_style=f"bold {color}",
+        box=box.ROUNDED, border_style=C['muted'], show_header=False,
+    )
+    table.add_column("Key",   style=C['muted'], width=14)
+    table.add_column("Value", style=C['text'])
+    table.add_row("Description", data["description"])
+    table.add_row("Version",     data["version"])
+    table.add_row("Author",      data["author"])
+    table.add_row("Category",    f"[{color}]{data['category']}[/{color}]")
+    table.add_row("Module Path", f"tools/{tool_name}.py")
+    console.print(table)
 
-# ----------------------------------------------------------------------
-# Entry Point
-# ----------------------------------------------------------------------
+
+# ======================================================================
+# Tool Runner
+# ======================================================================
+def run_tool(tools, tool_name, config):
+    if tool_name not in tools:
+        console.print(f"[{C['danger']}]✖ Tool '{tool_name}' not found.[/{C['danger']}]")
+        return
+    info = tools[tool_name]
+    icon, color = CATEGORY_STYLE.get(info["category"], ("•", "white"))
+
+    console.print()
+    console.print(Rule(
+        f"[bold {color}]  {icon}  {tool_name}  [/bold {color}]"
+        f"[{C['muted']}]v{info['version']}[/{C['muted']}]",
+        style=C['muted'],
+    ))
+    console.print()
+
+    if is_animated(config):
+        loader_spinner(f"Launching {tool_name}...", duration=0.3, config=config)
+
+    try:
+        result = tools[tool_name]["module"].run()
+        if isinstance(result, dict):
+            _LAST_RESULT[tool_name] = result
+    except KeyboardInterrupt:
+        console.print(f"\n[{C['warning']}]⏹  Tool interrupted.[/{C['warning']}]")
+    except Exception as e:
+        err = f"Error in {tool_name}: {e}"
+        console.print(f"[{C['danger']}]✖ {err}[/{C['danger']}]")
+        log_error(err)
+
+    console.print()
+    console.print(Rule(style=C['muted']))
+    console.input(f"[{C['muted']}]Press Enter to return to menu…[/{C['muted']}]")
+
+
+# ======================================================================
+# Main
+# ======================================================================
+def main():
+    parser = argparse.ArgumentParser(description="AegisCLI — Modern Security Toolkit")
+    parser.add_argument("--run",     help="Run a specific tool", metavar="TOOL")
+    parser.add_argument("--list",    action="store_true", help="List all tools")
+    parser.add_argument("--version", action="version", version=f"AegisCLI v{VERSION}")
+    parser.add_argument("--no-anim", action="store_true", help="Disable animations")
+    args = parser.parse_args()
+
+    config = load_config()
+    if args.no_anim:
+        config["animations"] = False
+
+    boot_animation(config)
+    tools = load_tools(config)
+
+    if args.list:
+        if not tools:
+            console.print(f"[{C['danger']}]No tools found.[/{C['danger']}]")
+            return
+        console.print(f"[bold {C['primary']}]Available Tools:[/bold {C['primary']}]")
+        for name, data in tools.items():
+            icon, color = CATEGORY_STYLE.get(data["category"], ("•", "white"))
+            aliases = TOOL_ALIASES.get(name, [])
+            alias_str = f" [{C['muted']}]({aliases[0]})[/{C['muted']}]" if aliases else ""
+            console.print(
+                f"  [{color}]{icon}[/{color}] [{color}]{name:<14}[/{color}]"
+                f"{alias_str} [{C['muted']}]v{data['version']} {data['category']}[/{C['muted']}]"
+            )
+        return
+
+    if args.run:
+        run_tool(tools, args.run, config)
+        return
+
+    while True:
+        display_menu(tools, config)
+
+        last = config.get("last_tool")
+        suffix = f" [{C['muted']}]({last})[/{C['muted']}]" if last and last in tools else ""
+        try:
+            choice = Prompt.ask(f"[bold {C['secondary']}]❯[/bold {C['secondary']}]{suffix}").strip()
+        except (KeyboardInterrupt, EOFError):
+            console.print()
+            break
+
+        if not choice:
+            continue
+
+        add_history(choice)
+        low = choice.lower()
+
+        if low in ("exit", "quit", "q", "0"):
+            console.print()
+            if is_animated(config):
+                loader_spinner("Shutting down...", duration=0.3, config=config)
+            console.print(Panel(
+                f"[bold {C['success']}]Goodbye! Thanks for using AegisCLI.[/bold {C['success']}]\n"
+                f"[{C['muted']}]github.com/NoveMixS/AegisCLI-NMS[/{C['muted']}]",
+                border_style=C['success'], padding=(1, 3),
+            ))
+            sys.exit(0)
+
+        if low == "reload":
+            if is_animated(config):
+                loader_spinner("Reloading tools...", duration=0.4, config=config)
+            tools = load_tools(config)
+            success_toast(f"Reloaded {len(tools)} tools.")
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low == "help":
+            console.print(Panel(
+                f"[bold {C['primary']}]Navigation[/bold {C['primary']}]\n"
+                f"  [{C['link']}]<number>[/{C['link']}] / [{C['link']}]<name>[/{C['link']}] / [{C['link']}]<alias>[/{C['link']}]  Run tool\n"
+                f"  [{C['link']}]reload[/{C['link']}]  [{C['link']}]exit[/{C['link']}] / [{C['link']}]q[/{C['link']}]\n\n"
+                f"[bold {C['primary']}]Discovery[/bold {C['primary']}]\n"
+                f"  [{C['link']}]info <tool>[/{C['link']}]  [{C['link']}]search <kw>[/{C['link']}]  "
+                f"[{C['link']}]favlist[/{C['link']}]  [{C['link']}]favorite <tool>[/{C['link']}]\n\n"
+                f"[bold {C['primary']}]Session[/bold {C['primary']}]\n"
+                f"  [{C['link']}]history[/{C['link']}]  [{C['link']}]clear[/{C['link']}]  "
+                f"[{C['link']}]config[/{C['link']}]  [{C['link']}]set <k> <v>[/{C['link']}]",
+                title="❓  Help", border_style=C['primary'], padding=(1, 2),
+            ))
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low == "clear":
+            console.clear()
+            continue
+
+        if low == "history":
+            hist = get_history()
+            if not hist:
+                console.print(f"[{C['muted']}]No history yet.[/{C['muted']}]")
+            else:
+                t = Table(title="Command History", title_style=f"bold {C['primary']}",
+                          box=box.ROUNDED, border_style=C['muted'])
+                t.add_column("#", style=C['muted'], width=4)
+                t.add_column("Command", style=C['text'])
+                for i, c in enumerate(hist, 1):
+                    t.add_row(str(i), c)
+                console.print(t)
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low == "config":
+            show_config(config)
+            continue
+
+        if low.startswith("set "):
+            parts = choice.split(maxsplit=2)
+            if len(parts) == 3:
+                config = config_set(config, parts[1], parts[2])
+            else:
+                console.print(f"[{C['danger']}]Usage: set <key> <value>[/{C['danger']}]")
+            continue
+
+        if low.startswith("search "):
+            kw = choice[7:].strip()
+            if kw:
+                search_tools(tools, kw)
+            else:
+                console.print(f"[{C['danger']}]Usage: search <keyword>[/{C['danger']}]")
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low.startswith("info "):
+            t = choice[5:].strip()
+            if t:
+                t_resolved = resolve_tool(t, tools) or t
+                show_tool_info(tools, t_resolved)
+            else:
+                console.print(f"[{C['danger']}]Usage: info <tool>[/{C['danger']}]")
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low.startswith("favorite "):
+            t = choice[9:].strip()
+            if t:
+                t_resolved = resolve_tool(t, tools) or t
+                config = toggle_favorite(config, t_resolved, tools)
+            else:
+                console.print(f"[{C['danger']}]Usage: favorite <tool>[/{C['danger']}]")
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        if low == "favlist":
+            list_favorites(tools, config)
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+            continue
+
+        selected = resolve_tool(choice, tools)
+        if selected:
+            run_tool(tools, selected, config)
+            config["last_tool"] = selected
+            save_config(config)
+        else:
+            console.print(f"[{C['danger']}]✖ Unknown: '{choice}'[/{C['danger']}]")
+            console.print(f"[{C['muted']}]Try: number, name, or alias (nm, ss, dns)[/{C['muted']}]")
+            console.input(f"[{C['muted']}]Press Enter…[/{C['muted']}]")
+
+
+# ======================================================================
+# Entry
+# ======================================================================
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        console.print("\n\n[bold red]⏹️  Session Interrupted. GOOD BYE![/bold red]\n")
+        console.print(f"\n[bold {C['danger']}]Session interrupted.[/bold {C['danger']}]\n")
         sys.exit(0)
     except Exception as e:
-        console.print(f"\n[bold red]💥 Fatal Error: {e}[/bold red]")
+        console.print(f"\n[bold {C['danger']}]Fatal: {e}[/bold {C['danger']}]")
         log_error(f"FATAL: {e}")
         sys.exit(1)
