@@ -2,7 +2,7 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=140&section=header&text=AegisCLI&fontSize=54&fontColor=ffffff&animation=fadeIn&fontAlignY=38" alt="AegisCLI header" width="100%"/>
 
-<img src="assets/logo.svg" alt="AegisCLI logo" width="200"/>
+<img src="logo.svg" alt="AegisCLI logo" width="200"/>
 
 ### All-in-One Modular Security CLI Toolkit
 
