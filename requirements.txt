@@ -2,3 +2,6 @@ rich
 cryptography
 prompt-toolkit
 python-whois
+dnsrecon
+requests
+dirbrute
