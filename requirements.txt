@@ -1,3 +1,4 @@
 rich
 cryptography
 prompt-toolkit
+python-whois
